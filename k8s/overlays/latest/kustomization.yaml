@@ -9,4 +9,4 @@ resources:
   - ../../web.yaml
 images:
   - name: localhost:30500/teampass
-    newTag: 3.1.7.5-arm64-r5
+    newTag: latest

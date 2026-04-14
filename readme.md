@@ -70,7 +70,7 @@ Preencha o instalador com:
 
 - Absolute path of the application: `/var/www/html`
 - URL of the application: `http://192.168.3.159:30088`
-- Absolute path to secure key: `/var/TeampassSecurity`
+- Absolute path to secure key: `/var/teampass`
 - Saltkey absolute path: `/var/www/html/sk`
 - Database host: `db`
 - Database port: `3306`

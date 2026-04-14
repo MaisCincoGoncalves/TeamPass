@@ -4,13 +4,36 @@ $RegistryPush = "192.168.3.159:30500"
 $RegistryPull = "localhost:30500"
 $Repository = "teampass"
 $Version = "3.1.7.5"
-$Tag = "$Version-arm64-r5"
+$Tag = "latest"
 $ImagePush = "$RegistryPush/$Repository`:$Tag"
 $ImagePull = "$RegistryPull/$Repository`:$Tag"
 $BuilderName = "teampass-builder"
-$EntrypointPath = Join-Path $PSScriptRoot "..\_upstream\TeamPass\docker\docker-entrypoint.sh"
+$EntrypointPath = Join-Path $PSScriptRoot "..\_upstream\docker\docker-entrypoint.sh"
 
-Write-Host "Building $ImagePush locally with docker buildx..."
+function Remove-RegistryImage {
+  param(
+    [string]$Registry,
+    [string]$Repo,
+    [string]$TagName
+  )
+
+  $manifestUrl = "http://$Registry/v2/$Repo/manifests/$TagName"
+  try {
+    $response = Invoke-WebRequest -Uri $manifestUrl -Method Head -Headers @{ Accept = "application/vnd.docker.distribution.manifest.v2+json" } -UseBasicParsing -ErrorAction Stop
+    $digest = $response.Headers['Docker-Content-Digest']
+    if ($null -ne $digest -and $digest -ne '') {
+      Write-Host "Deleting existing registry image $Registry/$Repo@$digest"
+      Invoke-WebRequest -Uri "http://$Registry/v2/$Repo/manifests/$digest" -Method Delete -UseBasicParsing -ErrorAction Stop
+      Write-Host "Deleted existing image digest: $digest"
+    }
+  }
+  catch {
+    Write-Host ('No existing image to delete at ' + $Registry + '/' + $Repo + ':' + $TagName + ' or registry delete not available. Continuing...')
+  }
+}
+
+Write-Host "Preparing to build and push $ImagePush..."
+Remove-RegistryImage -Registry $RegistryPush -Repo $Repository -TagName $Tag
 
 $entrypointContent = [System.IO.File]::ReadAllText($EntrypointPath)
 $entrypointContent = $entrypointContent -replace "`r`n", "`n"
@@ -25,13 +48,14 @@ if ($LASTEXITCODE -ne 0) {
 
 docker buildx inspect --bootstrap | Out-Null
 
+$BuildContextPath = Join-Path $PSScriptRoot "..\_upstream"
 $buildArgs = @(
   "buildx", "build",
   "--platform", "linux/arm64",
   "--tag", $ImagePush,
   "--build-arg", "TEAMPASS_VERSION=$Version",
   "--output", "type=image,name=$ImagePush,push=true,registry.insecure=true",
-  "_upstream"
+  $BuildContextPath
 )
 
 docker @buildArgs

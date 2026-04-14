@@ -21,10 +21,10 @@ spec:
             - sh
             - -c
             - |
-              mkdir -p /work/sk /work/files /work/upload /security
-              chown -R 100:101 /work/sk /work/files /work/upload /security
+              mkdir -p /work/sk /work/files /work/upload /var/teampass
+              chown -R 100:101 /work/sk /work/files /work/upload /var/teampass
               chmod 700 /work/sk
-              chmod 750 /work/files /work/upload /security
+              chmod 750 /work/files /work/upload /var/teampass
           volumeMounts:
             - name: teampass-sk
               mountPath: /work/sk
@@ -33,10 +33,10 @@ spec:
             - name: teampass-upload
               mountPath: /work/upload
             - name: teampass-security
-              mountPath: /security
+              mountPath: /var/teampass
       containers:
         - name: teampass-web
-          image: localhost:30500/teampass:3.1.7.5-arm64-r5
+          image: localhost:30500/teampass:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -64,7 +64,17 @@ spec:
             - name: DB_PREFIX
               value: teampass_
             - name: INSTALL_MODE
-              value: manual
+              value: auto
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: teampass-db-secret
+                  key: admin-email
+            - name: ADMIN_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: teampass-db-secret
+                  key: admin-pwd
             - name: TEAMPASS_URL
               value: http://192.168.3.159:30088
             - name: PHP_MEMORY_LIMIT
@@ -97,7 +107,7 @@ spec:
             - name: teampass-upload
               mountPath: /var/www/html/upload
             - name: teampass-security
-              mountPath: /var/TeampassSecurity
+              mountPath: /var/teampass
       volumes:
         - name: teampass-sk
           persistentVolumeClaim:

@@ -602,7 +602,7 @@ function encryptFollowingDefuseForInstall($message, $ascii_key): array
 {
     // convert KEY
     $key = Key::loadFromAsciiSafeString($ascii_key);
-    $err = "";
+    $err = false;
 
     try {
         $text = Crypto::encrypt($message, $key);
