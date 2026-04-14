@@ -2,6 +2,30 @@
 
 Este projeto sobe o TeamPass no `k3s` com `NodePort` e uma imagem `arm64` própria, construída localmente com `docker buildx` a partir do código oficial do TeamPass.
 
+## Estrutura do Projeto
+
+```
+.
+├── _upstream/          # Submódulo com o código upstream do TeamPass
+├── k8s/                # Manifestos Kubernetes para implantação no k3s
+│   ├── overlays/       # Overlays para versões latest e legacy
+│   ├── configmap.yaml
+│   ├── db.yaml
+│   ├── kustomization.yaml
+│   ├── namespace.yaml
+│   ├── pvc.yaml
+│   ├── secret.yaml
+│   └── web.yaml
+├── scripts/            # Scripts para build das imagens Docker
+│   ├── build-teampass-arm64.ps1
+│   └── build-teampass-3.1.4.30-arm64.ps1
+├── .vscode/            # Configurações do VS Code
+├── .gitignore          # Arquivos ignorados pelo Git
+├── .gitmodules         # Configuração do submódulo
+├── README.md           # Este arquivo
+└── [outros arquivos]   # Código do TeamPass (PHP, etc.)
+```
+
 ## Build das imagens
 
 ```powershell
